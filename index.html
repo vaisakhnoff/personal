@@ -400,8 +400,8 @@
                   <div>
                      
                     <form role="form" class="contactForm" id="contactForm">
-                      <div id="sendmessage">Your message has been sent. Thank you!</div>
-                      <div id="errormessage"></div>
+                      <div id="sendmessage" style="color: green; display: none;">Your message has been sent. Thank you!</div>
+                      <div id="errormessage" style="color: red; display: none;"></div>
                       <div class="row">
                         <div class="col-md-12 mb-3">
                           <div class="form-group">
@@ -412,13 +412,13 @@
                         </div>
                         <div class="col-md-12 mb-3">
                           <div class="form-group">
-                            <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" data-rule="email" data-msg="Please enter a valid email" />
+                            <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" />
                             <div class="validation"></div>
                           </div>
                         </div>
                         <div class="col-md-12 mb-3">
                           <div class="form-group">
-                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" data-rule="minlen:4" data-msg="Please enter at least 8 chars of subject" />
+                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" />
                             <div class="validation"></div>
                           </div>
                         </div>
@@ -436,32 +436,59 @@
                     
                     <script>
                       document.getElementById("contactForm").addEventListener("submit", function(event) {
-                        event.preventDefault(); // Prevent the form from submitting the traditional way
-                        
-                        // Create a FormData object to capture the form data
-                        var formData = new FormData(this);
+                        event.preventDefault(); // Prevent form from submitting
                     
-                        // Send the form data using Fetch API
+                        // Get form elements
+                        var email = document.getElementById("email").value;
+                        var subject = document.getElementById("subject").value;
+                        var errorMessage = document.getElementById("errormessage");
+                        var successMessage = document.getElementById("sendmessage");
+                        var isValid = true;
+                    
+                        // Clear any previous error messages
+                        errorMessage.style.display = "none";
+                        successMessage.style.display = "none";
+                        errorMessage.innerText = "";
+                    
+                        // Email validation
+                        var emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                        if (!emailPattern.test(email)) {
+                          isValid = false;
+                          errorMessage.innerText += "Please enter a valid email address.\n";
+                          errorMessage.style.display = "block";
+                        }
+                    
+                        // Subject validation (minimum 8 characters)
+                        if (subject.length < 8) {
+                          isValid = false;
+                          errorMessage.innerText += "Subject must be at least 8 characters long.\n";
+                          errorMessage.style.display = "block";
+                        }
+                    
+                        // If validation fails, do not proceed
+                        if (!isValid) {
+                          return;
+                        }
+                    
+                        // Proceed with form submission if validation passes
+                        var formData = new FormData(this);
                         fetch('https://api.web3forms.com/submit', {
                           method: 'POST',
                           body: formData
                         })
                         .then(response => {
                           if (response.ok) {
-                            // Display success message
-                            document.getElementById("sendmessage").style.display = "block";
-                            // Hide any error message
-                            document.getElementById("errormessage").style.display = "none";
-                            // Clear the form fields
-                            this.reset();
+                            successMessage.style.display = "block";
+                            errorMessage.style.display = "none";
+                            this.reset(); // Clear form fields
                           } else {
-                            // Display error message
-                            document.getElementById("errormessage").style.display = "block";
+                            errorMessage.innerText = "An error occurred while sending your message. Please try again.";
+                            errorMessage.style.display = "block";
                           }
                         })
                         .catch(error => {
-                          // Handle network errors
-                          document.getElementById("errormessage").style.display = "block";
+                          errorMessage.innerText = "A network error occurred. Please try again.";
+                          errorMessage.style.display = "block";
                         });
                       });
                     </script>
